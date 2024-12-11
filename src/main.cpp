@@ -11,9 +11,9 @@
 #define STBY 5
 
 // NES controller pins
-#define DATA_PIN 16
-#define LOAD_PIN 17
-#define CLOCK_PIN 5
+#define DATA_PIN 4
+#define LOAD_PIN 16
+#define CLOCK_PIN 17
 
 // ledc setup parameters
 #define FREQUENCY 5000
@@ -87,7 +87,6 @@ void loop()
     stop();
   }
 
-  delay(100);
   Serial.println("");
 }
 
