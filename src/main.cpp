@@ -10,6 +10,10 @@
 #define AIN2 19
 #define STBY 5
 
+// encoder pins
+#define ENCODER_PINA 2
+#define ENCODER_PINB 15
+
 // NES controller pins
 #define DATA_PIN 4
 #define LOAD_PIN 16
@@ -27,6 +31,10 @@ void maxOpen(void);
 void CW(void);
 void CCW(void);
 void stop(void);
+void countPulse(void);
+
+volatile long int pulseCount;
+bool isrFired;
 
 // construct nes controller object
 NESControllerInterface nes(DATA_PIN, LOAD_PIN, CLOCK_PIN);
@@ -44,6 +52,13 @@ void setup()
   pinMode(AIN2, OUTPUT);
   pinMode(STBY, OUTPUT);
 
+  // setup Encoder pins and attach ISR
+  pinMode(ENCODER_PINA, INPUT_PULLUP);
+  pinMode(ENCODER_PINB, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_PINA), countPulse, RISING);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_PINB), countPulse, RISING);
+  pulseCount = 0;
+
   // attach limit switch interrupt pins to ISR
   pinMode(OPEN_BUTTON, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(OPEN_BUTTON), maxOpen, RISING);
@@ -57,15 +72,9 @@ void loop()
 
   Serial.println("----------------------------------");
 
-  Serial.print("PWM: ");
-  Serial.print(ledcRead(0));
-  Serial.print(", STBY: ");
-  Serial.print(digitalRead(STBY));
-  Serial.print(", AIN1: ");
-  Serial.print(digitalRead(AIN1));
-  Serial.print(", AIN2: ");
-  Serial.println(digitalRead(AIN2));
-
+  Serial.print("EncoderCount: ");
+  Serial.println(pulseCount);
+  CW();
   // get current NES controller input
   NESInput input = nes.getNESInput();
 
@@ -73,7 +82,7 @@ void loop()
   if (input.buttonLeft == true)
   {
     // rotate clockwise for a short amount of time
-    CW();
+    CCW();
     delay(100);
     stop();
   }
@@ -127,4 +136,21 @@ void CCW()
 void maxOpen()
 {
   stop();
+}
+
+void countPulse()
+{
+
+  if ((ENCODER_PINA == HIGH) & (ENCODER_PINB == LOW))
+  {
+    pulseCount++;
+  }
+  else if ((ENCODER_PINA == LOW) & (ENCODER_PINB== HIGH))
+  {
+    pulseCount--;
+  }
+  else{
+
+  }
+  
 }
